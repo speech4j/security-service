@@ -1,0 +1,28 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.data.r2dbc: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.speech4j.securityservice: DEBUG
+    org.speech4j.securityservice.service: DEBUG
+
+spring:
+  data:
+    postgres:
+      host: "localhost"
+      port: 5432
+      username: "securityuser"
+      password: "security123"
+      database: "securityservice"
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 398918112673-5vg9qr3677q3g1vlc0drga6edrshbp99.apps.googleusercontent.com
+            client-secret: jtvCtZnAcozeTU89hdilr6av
+
+
+

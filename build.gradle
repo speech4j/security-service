@@ -1,0 +1,44 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.0.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+}
+
+group = 'org.speech4j'
+version = '0.0.1'
+targetCompatibility = JavaVersion.VERSION_11
+sourceCompatibility = JavaVersion.VERSION_11
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/snapshot' }
+    maven { url 'https://repo.spring.io/libs-milestone' }
+}
+
+dependencies {
+    annotationProcessor group: 'org.springframework.boot', name: 'spring-boot-configuration-processor'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.modelmapper:modelmapper:2.3.7'
+
+//  R2DBC
+
+    implementation 'io.r2dbc:r2dbc-spi:0.8.1.RELEASE'
+    implementation 'io.r2dbc:r2dbc-postgresql:0.8.2.RELEASE'
+    implementation 'org.springframework.data:spring-data-r2dbc:1.1.0.RELEASE'
+
+//  Test dependencies
+    implementation 'org.junit.jupiter:junit-jupiter-engine:5.7.0-M1'
+    testCompile('io.projectreactor:reactor-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'junit', module: 'junit'
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+
+//  Lombok dependencies
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompile 'org.projectlombok:lombok'
+    testImplementation 'org.projectlombok:lombok'
+}
