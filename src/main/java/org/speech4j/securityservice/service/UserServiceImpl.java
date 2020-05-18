@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Mono<UserDto> getById(String id) {
         return repository.findById(id).doOnNext(user ->
-            LOGGER.debug("Got by id {} user {}", id, user)
+            LOGGER.debug("Got by id: [ {} ] user {}", id, user)
         ).map(this::mapUser);
     }
 
@@ -57,9 +57,10 @@ public class UserServiceImpl implements UserService {
 
         return userMono.zipWith(existingUserMono, (user, existingUser) ->
                 new User(existingUser.getId(), user.getEmail(), user.getPassword())
-        ).flatMap(user ->
-            repository.update(user.getId(), user.getEmail(), user.getPassword()).map(this::mapUser)
-        );
+        ).flatMap(user -> {
+            LOGGER.debug("Updating with following values: {}", user);
+            return repository.update(user.getId(), user.getEmail(), user.getPassword()).map(this::mapUser);
+        });
     }
 
     @Override

@@ -37,7 +37,7 @@ public class UserHandler {
                 .body(user, UserDto.class);
     }
 
-    Mono<ServerResponse> getUserByEmail(ServerRequest request) {
+    public Mono<ServerResponse> getUserByEmail(ServerRequest request) {
         String email = request.queryParam("email").get();
         Mono<UserDto> user = service.getByEmail(email);
         return ServerResponse.ok()
