@@ -64,11 +64,9 @@ public class UserHandler {
 
     public Mono<ServerResponse> createUser(ServerRequest request) {
         return request.bodyToMono(UserDto.class).flatMap(body -> {
-            validate(body);
-            if (!responseBody.isEmpty()) {
-                return ServerResponse.badRequest()
-                    .contentType(APPLICATION_JSON)
-                    .body(fromValue(responseBody));
+            Set<ConstraintViolation<UserDto>> errors = validator.validate(body, New.class);
+            if (!errors.isEmpty()) {
+                return validateMono(errors);
             } else {
                 return ServerResponse.status(HttpStatus.CREATED)
                     .contentType(APPLICATION_JSON)
@@ -79,18 +77,17 @@ public class UserHandler {
 
     public Mono<ServerResponse> updateUser(ServerRequest request) {
         String id = request.pathVariable("id");
-        return request.bodyToMono(UserDto.class).flatMap(body -> {
-            validate(body);
-            if (!responseBody.isEmpty()) {
-                return ServerResponse.status(HttpStatus.CREATED)
-                    .contentType(APPLICATION_JSON)
-                    .body(service.create(body), UserDto.class);
-            } else {
-                return ServerResponse.ok()
-                    .contentType(APPLICATION_JSON)
-                    .body(service.update(id, body), UserDto.class);
-            }
-        });
+        return request.bodyToMono(UserDto.class)
+            .flatMap(body -> {
+                Set<ConstraintViolation<UserDto>> errors = validator.validate(body, Existing.class);
+                if (!errors.isEmpty()) {
+                    return validateMono(errors);
+                } else {
+                    return ServerResponse.ok()
+                        .contentType(APPLICATION_JSON)
+                        .body(service.update(id, body), UserDto.class);
+                }
+            });
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request) {
@@ -98,18 +95,18 @@ public class UserHandler {
         return ServerResponse.ok().build(service.delete(id));
     }
 
-    private <T> void validate(UserDto body) {
-        Set<ConstraintViolation<UserDto>> errors = validator.validate(body, New.class, Existing.class);
-        if (!errors.isEmpty()) {
-            StringBuilder errorsMsgs = new StringBuilder();
-            for (ConstraintViolation<UserDto> error:errors) {
-                errorsMsgs.append("Invalid value: ")
-                        .append(error.getInvalidValue())
-                        .append(" Error message: ")
-                        .append(error.getMessage());
-            }
-            responseBody.put("message", errorsMsgs.toString());
+    private Mono<? extends ServerResponse> validateMono(Set<ConstraintViolation<UserDto>> errors) {
+        StringBuilder errorsMsgs = new StringBuilder();
+        for (ConstraintViolation<UserDto> error:errors) {
+            errorsMsgs.append("Invalid value: ")
+                    .append(error.getInvalidValue())
+                    .append(" Error message: ")
+                    .append(error.getMessage());
         }
+        responseBody.put("message", errorsMsgs.toString());
+        return ServerResponse.badRequest()
+                .contentType(APPLICATION_JSON)
+                .body(fromValue(responseBody));
     }
 
 }

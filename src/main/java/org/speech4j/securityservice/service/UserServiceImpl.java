@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
         Mono<User> userMono = Mono.just(mapUserDto(dto));
 
         return userMono.zipWith(existingUserMono, (user, existingUser) ->
-            new User(existingUser.getId(), user.getEmail(), user.getPassword())
+            new User(existingUser.getId(), existingUser.getEmail(), user.getPassword())
         ).flatMap(user -> {
             LOGGER.debug("Updating with following values: {}", user);
             return handleException(
