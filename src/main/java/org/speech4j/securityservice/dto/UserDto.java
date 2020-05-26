@@ -18,7 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDto {
-
     @Null(groups = {New.class, Existing.class})
     private String id;
 
@@ -34,11 +33,4 @@ public class UserDto {
     @Pattern(regexp = "^[a-zA-Z0-9]+$", groups = {New.class, Existing.class})
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
-
-    public UserDto(String email, String password) {
-        this.id = UUID.randomUUID().toString();
-        this.email = email;
-        this.password = password;
-    }
-
 }

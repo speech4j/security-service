@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
@@ -43,6 +45,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<UserDto> create(UserDto dto) {
+        dto.setId(UUID.randomUUID().toString());
         User user = mapUserDto(dto);
         return handleException(
             repository.create(user.getId(), user.getEmail(), user.getPassword()),
