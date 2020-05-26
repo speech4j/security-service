@@ -20,6 +20,7 @@ dependencies {
     annotationProcessor group: 'org.springframework.boot', name: 'spring-boot-configuration-processor'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'org.modelmapper:modelmapper:2.3.7'
+    implementation 'org.hibernate:hibernate-validator:6.1.5.Final'
 
 //  R2DBC
 
