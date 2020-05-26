@@ -4,6 +4,8 @@ import org.speech4j.securityservice.handler.UserHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
@@ -35,6 +37,11 @@ public class WebConfig implements WebFluxConfigurer {
 
     public static RequestPredicate hasQueryParam(String name) {
         return RequestPredicates.queryParam(name, StringUtils::hasText);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
 }

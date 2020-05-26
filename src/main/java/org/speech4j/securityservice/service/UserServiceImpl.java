@@ -10,6 +10,7 @@ import org.speech4j.securityservice.exception.UserNotFoundException;
 import org.speech4j.securityservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -22,10 +23,12 @@ public class UserServiceImpl implements UserService {
 
     private UserRepository repository;
     private ModelMapper mapper = new ModelMapper();
+    private PasswordEncoder encoder;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder encoder) {
         this.repository = userRepository;
+        this.encoder = encoder;
     }
 
     @Override
@@ -47,6 +50,7 @@ public class UserServiceImpl implements UserService {
     public Mono<UserDto> create(UserDto dto) {
         dto.setId(UUID.randomUUID().toString());
         User user = mapUserDto(dto);
+        user.setPassword(encoder.encode(user.getPassword()));
         return handleException(
             repository.create(user.getId(), user.getEmail(), user.getPassword()),
             user,
@@ -60,7 +64,7 @@ public class UserServiceImpl implements UserService {
         Mono<User> userMono = Mono.just(mapUserDto(dto));
 
         return userMono.zipWith(existingUserMono, (user, existingUser) ->
-            new User(existingUser.getId(), existingUser.getEmail(), user.getPassword())
+            new User(existingUser.getId(), existingUser.getEmail(), encoder.encode(user.getPassword()))
         ).flatMap(user -> {
             LOGGER.debug("Updating with following values: {}", user);
             return handleException(
