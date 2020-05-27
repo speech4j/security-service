@@ -32,8 +32,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Flux<UserDto> get() {
-        return repository.findAll().map(this::mapUser);
+    public Flux<UserDto> get(int max, int offset) {
+        return repository.findAll(max, offset).map(this::mapUser);
     }
 
     @Override

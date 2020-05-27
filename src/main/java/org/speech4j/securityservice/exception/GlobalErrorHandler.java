@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -23,24 +24,31 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
         DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
-        Map<String, String> errorBody = Map.of("message", ex.getMessage());
-        if (ex instanceof UserExistsException || ex instanceof DataOperationException ||
-        ex instanceof UserNotFoundException) {
+        Map<String, String> errorBody = new HashMap<>();
+        if (ex instanceof UserExistsException || ex instanceof DataOperationException) {
             exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
-            DataBuffer dataBuffer;
-            try {
-                dataBuffer = bufferFactory.wrap(mapper.writeValueAsBytes(errorBody));
-            } catch (JsonProcessingException e) {
-                dataBuffer = bufferFactory.wrap("".getBytes());
-            }
-            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
-            return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+            return getJsonMessage(exchange, bufferFactory, errorBody);
+        }
+        if (ex instanceof UserNotFoundException) {
+            exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+            return getJsonMessage(exchange, bufferFactory, errorBody);
         }
 
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         errorBody.put("message", "unknown server-side error");
         DataBuffer dataBuffer = bufferFactory.wrap(mapper.writeValueAsBytes(errorBody));
+        return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+    }
+
+    private Mono<Void> getJsonMessage(ServerWebExchange exchange, DataBufferFactory bufferFactory, Map<String, String> errorBody) {
+        DataBuffer dataBuffer;
+        try {
+            dataBuffer = bufferFactory.wrap(mapper.writeValueAsBytes(errorBody));
+        } catch (JsonProcessingException e) {
+            dataBuffer = bufferFactory.wrap("".getBytes());
+        }
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         return exchange.getResponse().writeWith(Mono.just(dataBuffer));
     }
 }

@@ -5,19 +5,15 @@ import org.speech4j.securityservice.dto.validation.Existing;
 import org.speech4j.securityservice.dto.validation.New;
 import org.speech4j.securityservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +27,8 @@ public class UserHandler {
     private UserService service;
     private Validator validator;
     private Map<String, String> responseBody;
+    private static final Integer MAX = 10;
+    private static final Integer OFFSET = 0;
 
     @Autowired
     public UserHandler(UserService service, Validator validator) {
@@ -40,7 +38,21 @@ public class UserHandler {
     }
 
     public Mono<ServerResponse> getUsers(ServerRequest request) {
-        Flux<UserDto> users = service.get();
+        int max;
+        int offset;
+
+        try {
+            max = Integer.parseInt(request.queryParam("max").orElse(MAX.toString()));
+            offset = Integer.parseInt(request.queryParam("offset").orElse(OFFSET.toString()));
+        } catch(NumberFormatException | NullPointerException e) {
+            max = MAX;
+            offset = OFFSET;
+        }
+
+        max = Math.max(0, Math.min(max, MAX));
+        offset = Math.max(OFFSET, offset);
+
+        Flux<UserDto> users = service.get(max, offset);
         return ServerResponse.ok()
             .contentType(APPLICATION_JSON)
             .body(users, UserDto.class);
@@ -107,6 +119,10 @@ public class UserHandler {
         return ServerResponse.badRequest()
                 .contentType(APPLICATION_JSON)
                 .body(fromValue(responseBody));
+    }
+
+    private void validateParams(String max, String offset) {
+
     }
 
 }
