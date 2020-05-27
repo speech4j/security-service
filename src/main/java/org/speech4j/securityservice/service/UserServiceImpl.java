@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
         dto.setId(UUID.randomUUID().toString());
         User user = mapUserDto(dto);
         user.setPassword(encoder.encode(user.getPassword()));
+        LOGGER.debug("Creating user with following values: {}", user);
         return handleException(
             repository.create(user.getId(), user.getEmail(), user.getPassword()),
             user,
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
         return userMono.zipWith(existingUserMono, (user, existingUser) ->
             new User(existingUser.getId(), existingUser.getEmail(), encoder.encode(user.getPassword()))
         ).flatMap(user -> {
-            LOGGER.debug("Updating with following values: {}", user);
+            LOGGER.debug("Updating user with following values: {}", user);
             return handleException(
                 repository.update(user.getId(), user.getEmail(), user.getPassword()),
                 user,
@@ -89,14 +90,14 @@ public class UserServiceImpl implements UserService {
             return Mono.error(err);
         })
         .doOnNext(user ->
-            LOGGER.debug("Got by field: [ {} ] user {}", field, user)
+            LOGGER.debug("Got user by field: [ {} ] user {}", field, user)
         ).map(this::mapUser);
     }
 
     private Mono<UserDto> handleException(Mono<User> userMono, User user, UserDto dto) {
         return userMono.onErrorResume(error -> {
             if (error instanceof DataIntegrityViolationException) {
-                LOGGER.error("User with already exists {}", dto);
+                LOGGER.error("User already exists {}", dto);
                 return Mono.error(new UserExistsException("User already exists"));
             } else {
                 LOGGER.error("User update failed {}", error.getLocalizedMessage());

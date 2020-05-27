@@ -1,5 +1,6 @@
 package org.speech4j.securityservice.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.Existing;
 import org.speech4j.securityservice.dto.validation.New;
@@ -21,6 +22,7 @@ import java.util.Set;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
+@Slf4j
 @Component
 public class UserHandler {
 
@@ -42,9 +44,13 @@ public class UserHandler {
         int offset;
 
         try {
-            max = Integer.parseInt(request.queryParam("max").orElse(MAX.toString()));
-            offset = Integer.parseInt(request.queryParam("offset").orElse(OFFSET.toString()));
+            String maxParam = request.queryParam("max").orElse(MAX.toString());
+            String offsetParam = request.queryParam("offset").orElse(OFFSET.toString());
+            LOGGER.debug("Got params: [max: {}, offset: {}]", maxParam, offsetParam);
+            max = Integer.parseInt(maxParam);
+            offset = Integer.parseInt(offsetParam);
         } catch(NumberFormatException | NullPointerException e) {
+            LOGGER.error("Params invalid, errorMsg: {}, error: {}", e.getLocalizedMessage(), e);
             max = MAX;
             offset = OFFSET;
         }
@@ -119,10 +125,6 @@ public class UserHandler {
         return ServerResponse.badRequest()
                 .contentType(APPLICATION_JSON)
                 .body(fromValue(responseBody));
-    }
-
-    private void validateParams(String max, String offset) {
-
     }
 
 }
