@@ -24,8 +24,9 @@ public class WebConfig implements WebFluxConfigurer {
     @Bean
     RouterFunction<ServerResponse> routes(UserHandler handler) {
         return route(GET("/users").and(hasQueryParam("email")), handler::getUserByEmail)
+                .andRoute(POST("/login").and(accept(APPLICATION_JSON)), handler::login)
                 .andRoute(GET("/users").and(accept(APPLICATION_JSON)), handler::getUsers)
-                .andRoute(POST("/users").and(accept(APPLICATION_JSON)), handler::createUser)
+                .andRoute(POST("/register").and(accept(APPLICATION_JSON)), handler::register)
                 .andRoute(GET("/users/{id}").and(accept(APPLICATION_JSON)), handler::getUserById)
                 .andRoute(PUT("/users/{id}").and(accept(APPLICATION_JSON)), handler::updateUser)
                 .andRoute(DELETE("/users/{id}").and(accept(APPLICATION_JSON)), handler::deleteUser);

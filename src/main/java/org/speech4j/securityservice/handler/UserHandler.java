@@ -1,12 +1,16 @@
 package org.speech4j.securityservice.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.speech4j.securityservice.dto.AuthRequest;
+import org.speech4j.securityservice.dto.AuthResponse;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.Existing;
 import org.speech4j.securityservice.dto.validation.New;
 import org.speech4j.securityservice.service.UserService;
+import org.speech4j.securityservice.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -28,15 +32,39 @@ public class UserHandler {
 
     private UserService service;
     private Validator validator;
+    private PasswordEncoder encoder;
+    private JWTUtil jwtUtil;
     private Map<String, String> responseBody;
     private static final Integer MAX = 10;
     private static final Integer OFFSET = 0;
 
     @Autowired
-    public UserHandler(UserService service, Validator validator) {
+    public UserHandler(UserService service, Validator validator, PasswordEncoder encoder, JWTUtil jwtUtil) {
         this.service = service;
         this.validator = validator;
+        this.encoder = encoder;
+        this.jwtUtil = jwtUtil;
         this.responseBody = new HashMap<>();
+    }
+
+    public Mono<ServerResponse> login(ServerRequest request) {
+        return request.bodyToMono(AuthRequest.class).flatMap(body -> {
+            Set<ConstraintViolation<AuthRequest>> errors = validator.validate(body, New.class);
+            if (!errors.isEmpty()) {
+                return validateMono(errors);
+            } else {
+            return service.getByEmail(body.getEmail()).flatMap(user -> {
+                if (encoder.matches(body.getPassword(), user.getPassword())) {
+                        AuthResponse response = new AuthResponse(jwtUtil.generateToken(user));
+                        return ServerResponse.ok()
+                                .contentType(APPLICATION_JSON)
+                                .body(fromValue(response));
+                        } else {
+                            return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+                        }
+                }).onErrorResume(err ->  ServerResponse.status(HttpStatus.UNAUTHORIZED).build());
+            }
+        });
     }
 
     public Mono<ServerResponse> getUsers(ServerRequest request) {
@@ -80,7 +108,7 @@ public class UserHandler {
             .body(user, UserDto.class);
     }
 
-    public Mono<ServerResponse> createUser(ServerRequest request) {
+    public Mono<ServerResponse> register(ServerRequest request) {
         return request.bodyToMono(UserDto.class).flatMap(body -> {
             Set<ConstraintViolation<UserDto>> errors = validator.validate(body, New.class);
             if (!errors.isEmpty()) {
@@ -113,9 +141,9 @@ public class UserHandler {
         return ServerResponse.ok().build(service.delete(id));
     }
 
-    private Mono<? extends ServerResponse> validateMono(Set<ConstraintViolation<UserDto>> errors) {
+    private <T> Mono<? extends ServerResponse> validateMono(Set<ConstraintViolation<T>> errors) {
         StringBuilder errorsMsgs = new StringBuilder();
-        for (ConstraintViolation<UserDto> error:errors) {
+        for (ConstraintViolation<?> error:errors) {
             errorsMsgs.append("Invalid value: ")
                     .append(error.getInvalidValue())
                     .append(" Error message: ")
@@ -126,5 +154,4 @@ public class UserHandler {
                 .contentType(APPLICATION_JSON)
                 .body(fromValue(responseBody));
     }
-
 }
