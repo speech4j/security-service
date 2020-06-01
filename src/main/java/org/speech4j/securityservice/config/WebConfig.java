@@ -1,5 +1,6 @@
 package org.speech4j.securityservice.config;
 
+import org.speech4j.securityservice.handler.AuthHandler;
 import org.speech4j.securityservice.handler.UserHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,14 +23,18 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class WebConfig implements WebFluxConfigurer {
 
     @Bean
-    RouterFunction<ServerResponse> routes(UserHandler handler) {
+    RouterFunction<ServerResponse> userRoutes(UserHandler handler) {
         return route(GET("/users").and(hasQueryParam("email")), handler::getUserByEmail)
-                .andRoute(POST("/login").and(accept(APPLICATION_JSON)), handler::login)
                 .andRoute(GET("/users").and(accept(APPLICATION_JSON)), handler::getUsers)
-                .andRoute(POST("/register").and(accept(APPLICATION_JSON)), handler::register)
                 .andRoute(GET("/users/{id}").and(accept(APPLICATION_JSON)), handler::getUserById)
                 .andRoute(PUT("/users/{id}").and(accept(APPLICATION_JSON)), handler::updateUser)
                 .andRoute(DELETE("/users/{id}").and(accept(APPLICATION_JSON)), handler::deleteUser);
+    }
+
+    @Bean
+    RouterFunction<ServerResponse> authRoutes(AuthHandler handler) {
+        return route(POST("/login").and(accept(APPLICATION_JSON)), handler::login)
+               .andRoute(POST("/register").and(accept(APPLICATION_JSON)), handler::register);
     }
 
     public static RequestPredicate hasQueryParam(String name) {

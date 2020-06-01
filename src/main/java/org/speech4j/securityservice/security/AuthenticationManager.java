@@ -26,10 +26,8 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
     @SuppressWarnings("unchecked")
     public Mono<Authentication> authenticate(Authentication authentication) {
         String authToken = authentication.getCredentials().toString();
-        LOGGER.debug("RAZDVATRY {}", authToken);
         try {
             if (!jwtUtil.validateToken(authToken)) {
-                LOGGER.debug("TRYDVARAZ");
                 return Mono.empty();
             }
             Claims claims = jwtUtil.getAllClaimsFromToken(authToken);

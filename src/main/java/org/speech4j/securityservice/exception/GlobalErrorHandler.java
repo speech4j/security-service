@@ -27,6 +27,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         Map<String, String> errorBody = new HashMap<>();
         if (ex instanceof UserExistsException || ex instanceof DataOperationException) {
             exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
+            errorBody.put("message", ex.getMessage());
             return getJsonMessage(exchange, bufferFactory, errorBody);
         }
         if (ex instanceof UserNotFoundException) {
