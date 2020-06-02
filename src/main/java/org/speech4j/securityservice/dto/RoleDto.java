@@ -16,7 +16,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 public class RoleDto {
     @Null(groups = {New.class, Existing.class})
-    private int id;
+    private Integer id;
     @Size(min = 4, max = 10, groups = {New.class, Existing.class})
     @Pattern(regexp = "^[a-zA-Z0-9]+$",
             groups = {New.class, Existing.class})

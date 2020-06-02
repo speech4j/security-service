@@ -8,10 +8,15 @@ import org.speech4j.securityservice.dto.AuthResponse;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.New;
 import org.speech4j.securityservice.service.UserService;
+import org.speech4j.securityservice.service.UserServiceImpl;
 import org.speech4j.securityservice.util.JWTUtil;
 import org.speech4j.securityservice.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -53,10 +58,10 @@ public class AuthHandler {
             if (!errors.isEmpty()) {
                 return validationUtil.validateMono(errors);
             } else {
-                return service.getByUsername(body.getUsername()).flatMap(user -> {
+                return service.findByUsername(body.getUsername()).flatMap(user -> {
                     if (encoder.matches(body.getPassword(), user.getPassword())) {
-                        User mapped = mapper.map(user, User.class);
-                        AuthResponse response = new AuthResponse(jwtUtil.generateToken(mapped));
+                        String token = jwtUtil.generateToken(user);
+                        AuthResponse response = new AuthResponse(token);
                         return ServerResponse.ok()
                                 .contentType(APPLICATION_JSON)
                                 .body(fromValue(response));

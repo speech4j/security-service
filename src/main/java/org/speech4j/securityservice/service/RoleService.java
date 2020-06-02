@@ -1,7 +1,6 @@
 package org.speech4j.securityservice.service;
 
 import org.speech4j.securityservice.dto.RoleDto;
-import org.speech4j.securityservice.dto.UserDto;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,5 +15,11 @@ public interface RoleService {
     Mono<RoleDto> update(int id, RoleDto dto);
 
     Mono<Void> delete(int id);
+
+    Flux<RoleDto> findByUserId(String userId);
+
+    Mono<RoleDto> addRoleToUser(String userId, int roleId);
+
+    Mono<Void> removeRoleFromUser(String userId, int roleId);
 
 }

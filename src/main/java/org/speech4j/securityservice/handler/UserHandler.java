@@ -1,8 +1,11 @@
 package org.speech4j.securityservice.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.speech4j.securityservice.domain.Role;
+import org.speech4j.securityservice.dto.RoleDto;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.Existing;
+import org.speech4j.securityservice.service.RoleService;
 import org.speech4j.securityservice.service.UserService;
 import org.speech4j.securityservice.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +25,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 @Component
 public class UserHandler {
 
-    private UserService service;
+    private UserService userService;
+    private RoleService roleService;
     private Validator validator;
     private ValidationUtil validationUtil;
 
@@ -30,8 +34,10 @@ public class UserHandler {
     private static final Integer OFFSET = 0;
 
     @Autowired
-    public UserHandler(UserService service, Validator validator, ValidationUtil validationUtil) {
-        this.service = service;
+    public UserHandler(UserService userService, Validator validator,
+                       ValidationUtil validationUtil, RoleService roleService) {
+        this.userService = userService;
+        this.roleService = roleService;
         this.validator = validator;
         this.validationUtil = validationUtil;
     }
@@ -55,7 +61,7 @@ public class UserHandler {
         max = Math.max(0, Math.min(max, MAX));
         offset = Math.max(OFFSET, offset);
 
-        Flux<UserDto> users = service.get(max, offset);
+        Flux<UserDto> users = userService.get(max, offset);
         return ServerResponse.ok()
             .contentType(APPLICATION_JSON)
             .body(users, UserDto.class);
@@ -63,7 +69,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> getUserById(ServerRequest request) {
         String id = request.pathVariable("id");
-        Mono<UserDto> user = service.getById(id);
+        Mono<UserDto> user = userService.getById(id);
         return ServerResponse.ok()
             .contentType(APPLICATION_JSON)
             .body(user, UserDto.class);
@@ -71,7 +77,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> getUserByEmail(ServerRequest request) {
         String email = request.queryParam("email").get();
-        Mono<UserDto> user = service.getByEmail(email);
+        Mono<UserDto> user = userService.getByEmail(email);
         return ServerResponse.ok()
             .contentType(APPLICATION_JSON)
             .body(user, UserDto.class);
@@ -79,7 +85,7 @@ public class UserHandler {
 
     public Mono<ServerResponse> getUserByUsername(ServerRequest request) {
         String username = request.queryParam("username").get();
-        Mono<UserDto> user = service.getByEmail(username);
+        Mono<UserDto> user = userService.getByEmail(username);
         return ServerResponse.ok()
                 .contentType(APPLICATION_JSON)
                 .body(user, UserDto.class);
@@ -95,13 +101,45 @@ public class UserHandler {
                 } else {
                     return ServerResponse.ok()
                         .contentType(APPLICATION_JSON)
-                        .body(service.update(id, body), UserDto.class);
+                        .body(userService.update(id, body), UserDto.class);
                 }
             });
     }
 
     public Mono<ServerResponse> deleteUser(ServerRequest request) {
         String id = request.pathVariable("id");
-        return ServerResponse.ok().build(service.delete(id));
+        return ServerResponse.ok().build(userService.delete(id));
+    }
+
+    public Mono<ServerResponse> getRolesByUserId(ServerRequest request) {
+        String userId = request.pathVariable("id");
+        Flux<RoleDto> roleDtoFlux = roleService.findByUserId(userId);
+        return ServerResponse.ok()
+                .contentType(APPLICATION_JSON)
+                .body(roleDtoFlux, RoleDto.class);
+    }
+
+    public Mono<ServerResponse> addRoleToUser(ServerRequest request) {
+        String userId = request.pathVariable("id");
+        Mono<RoleDto> roleDtoMono = request.bodyToMono(RoleDto.class);
+        return roleDtoMono.flatMap(roleDto ->
+                roleService.addRoleToUser(userId, roleDto.getId()).flatMap(role ->
+                        ServerResponse.ok().contentType(APPLICATION_JSON).body(role, RoleDto.class)
+                )
+        );
+    }
+
+    public Mono<ServerResponse> removeRoleFromUser(ServerRequest request) {
+        String userId = request.pathVariable("userId");
+        int roleId;
+        try {
+            roleId = Integer.parseInt(request.pathVariable("roleId"));
+        } catch (Exception e) {
+            LOGGER.error("Path variable parse to int error");
+            return ServerResponse.badRequest().build();
+        }
+        return roleService.removeRoleFromUser(userId, roleId).flatMap(roleVoid ->
+                ServerResponse.ok().build()
+        );
     }
 }

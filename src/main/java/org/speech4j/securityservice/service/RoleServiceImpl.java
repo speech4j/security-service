@@ -3,9 +3,7 @@ package org.speech4j.securityservice.service;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.speech4j.securityservice.domain.Role;
-import org.speech4j.securityservice.domain.User;
 import org.speech4j.securityservice.dto.RoleDto;
-import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.exception.DataOperationException;
 import org.speech4j.securityservice.exception.EntityExistsException;
 import org.speech4j.securityservice.exception.EntityNotFoundException;
@@ -15,8 +13,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -72,6 +68,21 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Mono<Void> delete(int id) {
         return repository.deleteById(id);
+    }
+
+    @Override
+    public Flux<RoleDto> findByUserId(String userId) {
+        return repository.findByUserId(userId).map(this::mapRole);
+    }
+
+    @Override
+    public Mono<RoleDto> addRoleToUser(String userId, int roleId) {
+        return repository.addRoleToUser(userId, roleId).map(this::mapRole);
+    }
+
+    @Override
+    public Mono<Void> removeRoleFromUser(String userId, int roleId) {
+        return repository.removeRoleFromUser(userId, roleId);
     }
 
     private Mono<RoleDto> handleNotFound(Mono<Role> roleMono, String field) {

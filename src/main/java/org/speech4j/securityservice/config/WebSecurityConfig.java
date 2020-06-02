@@ -4,6 +4,7 @@ import org.speech4j.securityservice.security.AuthenticationManager;
 import org.speech4j.securityservice.security.SecurityContextRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -42,6 +43,7 @@ public class WebSecurityConfig {
                 .authorizeExchange()
                 .pathMatchers("/register").permitAll()
                 .pathMatchers("/login").permitAll()
+                .pathMatchers(HttpMethod.DELETE, "/users").hasAuthority("admin")
                 .anyExchange().authenticated()
                 .and().build();
     }

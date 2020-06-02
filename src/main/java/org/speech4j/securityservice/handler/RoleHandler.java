@@ -1,11 +1,11 @@
 package org.speech4j.securityservice.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.speech4j.securityservice.dto.RoleDto;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.Existing;
 import org.speech4j.securityservice.dto.validation.New;
 import org.speech4j.securityservice.service.RoleService;
-import org.speech4j.securityservice.service.UserService;
 import org.speech4j.securityservice.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ import java.util.Set;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Component
+@Slf4j
 public class RoleHandler {
 
     private RoleService service;
@@ -43,7 +44,13 @@ public class RoleHandler {
     }
 
     public Mono<ServerResponse> getRoleById(ServerRequest request) {
-        int id = Integer.parseInt(request.pathVariable("id"));
+        int id;
+        try {
+            id = Integer.parseInt(request.pathVariable("id"));
+        } catch (Exception e) {
+            LOGGER.error("Path variable parse to int error");
+            return ServerResponse.badRequest().build();
+        }
         Mono<RoleDto> role = service.getById(id);
         return ServerResponse.ok()
                 .contentType(APPLICATION_JSON)

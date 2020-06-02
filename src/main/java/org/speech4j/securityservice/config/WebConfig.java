@@ -32,7 +32,10 @@ public class WebConfig implements WebFluxConfigurer {
                 .andRoute(GET("/users").and(hasQueryParam("username")), handler::getUserByUsername)
                 .andRoute(GET("/users/{id}").and(accept(APPLICATION_JSON)), handler::getUserById)
                 .andRoute(PUT("/users/{id}").and(accept(APPLICATION_JSON)), handler::updateUser)
-                .andRoute(DELETE("/users/{id}").and(accept(APPLICATION_JSON)), handler::deleteUser);
+                .andRoute(DELETE("/users/{id}").and(accept(APPLICATION_JSON)), handler::deleteUser)
+                .andRoute(GET("/users/{id}/roles").and(accept(APPLICATION_JSON)), handler::getRolesByUserId)
+                .andRoute(POST("/users/{id}/roles").and(accept(APPLICATION_JSON)), handler::addRoleToUser)
+                .andRoute(DELETE("/users/{userId}/roles/{roleId}").and(accept(APPLICATION_JSON)), handler::removeRoleFromUser);
     }
 
     @Bean
@@ -45,17 +48,13 @@ public class WebConfig implements WebFluxConfigurer {
     RouterFunction<ServerResponse> roleRoutes(RoleHandler handler) {
         return route(POST("/roles").and(accept(APPLICATION_JSON)), handler::createRole)
                 .andRoute(GET("/roles"), handler::getRoles)
-                .andRoute(GET("/roles").and(isNumberQueryParam("id")), handler::getRoleById)
+                .andRoute(GET("/roles/{id}"), handler::getRoleById)
                 .andRoute(PUT("/roles/{id}").and(accept(APPLICATION_JSON)), handler::updateRole)
                 .andRoute(DELETE("/roles/{id}"), handler::deleteRole);
     }
 
     public static RequestPredicate hasQueryParam(String name) {
         return RequestPredicates.queryParam(name, StringUtils::hasText);
-    }
-
-    public static RequestPredicate isNumberQueryParam(String name) {
-        return RequestPredicates.queryParam("id", org.apache.commons.lang3.StringUtils::isNumeric);
     }
 
     @Bean

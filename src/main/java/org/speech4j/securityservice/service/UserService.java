@@ -1,10 +1,11 @@
 package org.speech4j.securityservice.service;
 
 import org.speech4j.securityservice.dto.UserDto;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface UserService {
+public interface UserService extends ReactiveUserDetailsService {
 
     Flux<UserDto> get(int max, int offset);
 

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.speech4j.securityservice.domain.User;
 import org.speech4j.securityservice.dto.UserDto;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -52,9 +53,9 @@ public class JWTUtil {
         return expiration.before(new Date());
     }
 
-    public String generateToken(User user) {
+    public String generateToken(UserDetails user) {
         Map<String, Object> claims = new HashMap<>();
-//        claims.put("role", user.getAuthorities());
+        claims.put("role", user.getAuthorities());
         return doGenerateToken(claims, user.getUsername());
     }
 
@@ -66,7 +67,7 @@ public class JWTUtil {
         final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
 
         return Jwts.builder()
-//                .setClaims(claims)
+                .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
