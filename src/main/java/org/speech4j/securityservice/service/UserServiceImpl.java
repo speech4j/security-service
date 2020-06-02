@@ -5,8 +5,8 @@ import org.modelmapper.ModelMapper;
 import org.speech4j.securityservice.domain.User;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.exception.DataOperationException;
-import org.speech4j.securityservice.exception.UserExistsException;
-import org.speech4j.securityservice.exception.UserNotFoundException;
+import org.speech4j.securityservice.exception.EntityExistsException;
+import org.speech4j.securityservice.exception.EntityNotFoundException;
 import org.speech4j.securityservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -100,7 +100,7 @@ public class UserServiceImpl implements UserService {
 
     private Mono<UserDto> handleNotFound(Mono<User> userMono, String field) {
         return userMono.switchIfEmpty(
-            Mono.error(new UserNotFoundException("User by field: "+field+" not found"))
+            Mono.error(new EntityNotFoundException("User by field: "+field+" not found"))
         )
         .onErrorResume(err -> {
             LOGGER.error("User by field: [ {} ] not found", field);
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
         return userMono.onErrorResume(error -> {
             if (error instanceof DataIntegrityViolationException) {
                 LOGGER.error("User already exists {}", dto);
-                return Mono.error(new UserExistsException("User already exists"));
+                return Mono.error(new EntityExistsException("User already exists"));
             } else {
                 LOGGER.error("User update failed {}", error.getLocalizedMessage());
                 return Mono.error(new DataOperationException("User update failed"));

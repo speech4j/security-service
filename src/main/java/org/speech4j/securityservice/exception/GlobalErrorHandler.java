@@ -25,12 +25,12 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
         DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
         Map<String, String> errorBody = new HashMap<>();
-        if (ex instanceof UserExistsException || ex instanceof DataOperationException) {
+        if (ex instanceof EntityExistsException || ex instanceof DataOperationException) {
             exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
             errorBody.put("message", ex.getMessage());
             return getJsonMessage(exchange, bufferFactory, errorBody);
         }
-        if (ex instanceof UserNotFoundException) {
+        if (ex instanceof EntityNotFoundException) {
             exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
             return getJsonMessage(exchange, bufferFactory, errorBody);
         }

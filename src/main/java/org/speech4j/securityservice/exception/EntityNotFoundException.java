@@ -1,10 +1,10 @@
 package org.speech4j.securityservice.exception;
 
-public class UserExistsException extends RuntimeException {
+public class EntityNotFoundException extends RuntimeException {
 
     private String message;
 
-    public UserExistsException(String message) {
+    public EntityNotFoundException(String message) {
         super(message);
         this.message = message;
     }

@@ -12,6 +12,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @Table("roles")
 public class Role {
     @Id
-    private String id;
+    private int id;
     private String name;
 }
