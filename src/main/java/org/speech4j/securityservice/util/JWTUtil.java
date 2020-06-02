@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
+import org.speech4j.securityservice.domain.User;
 import org.speech4j.securityservice.dto.UserDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,7 +39,7 @@ public class JWTUtil {
                 .getBody();
     }
 
-    public String getEmailFromToken(String token) {
+    public String getUsernameFromToken(String token) {
         return getAllClaimsFromToken(token).getSubject();
     }
 
@@ -51,26 +52,25 @@ public class JWTUtil {
         return expiration.before(new Date());
     }
 
-    public String generateToken(UserDto user) {
+    public String generateToken(User user) {
         Map<String, Object> claims = new HashMap<>();
-//        claims.put("role", user.getRoles());
-        return doGenerateToken(claims, user.getEmail());
+//        claims.put("role", user.getAuthorities());
+        return doGenerateToken(claims, user.getUsername());
     }
 
-    private String doGenerateToken(Map<String, Object> claims, String email) {
+    private String doGenerateToken(Map<String, Object> claims, String username) {
         //in second
         long expirationTimeLong = Long.parseLong(expirationTime);
 
         final Date createdDate = new Date();
         final Date expirationDate = new Date(createdDate.getTime() + expirationTimeLong * 1000);
 
-        String token = Jwts.builder()
+        return Jwts.builder()
 //                .setClaims(claims)
-                .setSubject(email)
+                .setSubject(username)
                 .setIssuedAt(createdDate)
                 .setExpiration(expirationDate)
                 .signWith(key).compact();
-        return token;
     }
 
     public Boolean validateToken(String token) {

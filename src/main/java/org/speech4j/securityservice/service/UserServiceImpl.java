@@ -47,13 +47,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Mono<UserDto> getByUsername(String username) {
+        return handleNotFound(repository.findByUsername(username), username);
+    }
+
+    @Override
     public Mono<UserDto> create(UserDto dto) {
         dto.setId(UUID.randomUUID().toString());
+        try {
+            if (dto.getUsername().trim().equals("")) {
+                dto.setUsername(dto.getEmail());
+            }
+        } catch (NullPointerException ignore) {
+            dto.setUsername(dto.getEmail());
+        }
         User user = mapUserDto(dto);
         user.setPassword(encoder.encode(user.getPassword()));
         LOGGER.debug("Creating user with following values: {}", user);
         return handleException(
-            repository.create(user.getId(), user.getEmail(), user.getPassword()),
+            repository.create(user.getId(), user.getEmail(), user.getPassword(), user.getUsername()),
             user,
             dto
         );
@@ -65,11 +77,16 @@ public class UserServiceImpl implements UserService {
         Mono<User> userMono = Mono.just(mapUserDto(dto));
 
         return userMono.zipWith(existingUserMono, (user, existingUser) ->
-            new User(existingUser.getId(), existingUser.getEmail(), encoder.encode(user.getPassword()))
+                    new User(existingUser.getId(),
+                    user.getUsername(),
+                    existingUser.getEmail(),
+                    encoder.encode(user.getPassword()),
+                    existingUser.getRoles()
+            )
         ).flatMap(user -> {
             LOGGER.debug("Updating user with following values: {}", user);
             return handleException(
-                repository.update(user.getId(), user.getEmail(), user.getPassword()),
+                repository.update(user.getId(), user.getUsername(), user.getPassword()),
                 user,
                 dto
             );

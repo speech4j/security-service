@@ -12,6 +12,8 @@ public interface UserService {
 
     Mono<UserDto> getByEmail(String email);
 
+    Mono<UserDto> getByUsername(String username);
+
     Mono<UserDto> create(UserDto dto);
 
     Mono<UserDto> update(String id, UserDto dto);

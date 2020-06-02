@@ -4,10 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.speech4j.securityservice.dto.UserDto;
 import org.speech4j.securityservice.dto.validation.Existing;
 import org.speech4j.securityservice.service.UserService;
-import org.speech4j.securityservice.util.JWTUtil;
 import org.speech4j.securityservice.util.ValidationUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -32,10 +30,10 @@ public class UserHandler {
     private static final Integer OFFSET = 0;
 
     @Autowired
-    public UserHandler(UserService service, Validator validator,
-                       PasswordEncoder encoder, JWTUtil jwtUtil, ValidationUtil validationUtil) {
+    public UserHandler(UserService service, Validator validator, ValidationUtil validationUtil) {
         this.service = service;
         this.validator = validator;
+        this.validationUtil = validationUtil;
     }
 
     public Mono<ServerResponse> getUsers(ServerRequest request) {
@@ -77,6 +75,14 @@ public class UserHandler {
         return ServerResponse.ok()
             .contentType(APPLICATION_JSON)
             .body(user, UserDto.class);
+    }
+
+    public Mono<ServerResponse> getUserByUsername(ServerRequest request) {
+        String username = request.queryParam("username").get();
+        Mono<UserDto> user = service.getByEmail(username);
+        return ServerResponse.ok()
+                .contentType(APPLICATION_JSON)
+                .body(user, UserDto.class);
     }
 
     public Mono<ServerResponse> updateUser(ServerRequest request) {

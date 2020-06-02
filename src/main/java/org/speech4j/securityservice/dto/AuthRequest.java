@@ -15,13 +15,11 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AuthRequest {
-    @Size(min = 11, max = 64, groups = {New.class})
+    @Size(min = 6, max = 32, groups = {New.class, Existing.class})
     @NotBlank(groups = {New.class, Existing.class})
-    @Pattern(regexp = "^[\\w!#$%&’*+/=?`{|}~^-]+(?:\\.[\\w!#$%&’*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$",
-            groups = {New.class, Existing.class})
-    private String email;
+    private String username;
 
-    @Size(min = 6, max = 32, groups = {New.class})
+    @Size(min = 6, max = 32, groups = {New.class, Existing.class})
     @NotBlank(groups = {New.class, Existing.class})
     @Pattern(regexp = "^[a-zA-Z0-9]+$", groups = {New.class, Existing.class})
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

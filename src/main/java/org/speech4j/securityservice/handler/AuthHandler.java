@@ -1,5 +1,8 @@
 package org.speech4j.securityservice.handler;
 
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.speech4j.securityservice.domain.User;
 import org.speech4j.securityservice.dto.AuthRequest;
 import org.speech4j.securityservice.dto.AuthResponse;
 import org.speech4j.securityservice.dto.UserDto;
@@ -23,6 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Component
+@Slf4j
 public class AuthHandler {
 
     private UserService service;
@@ -30,10 +34,12 @@ public class AuthHandler {
     private PasswordEncoder encoder;
     private JWTUtil jwtUtil;
     private ValidationUtil validationUtil;
+    private ModelMapper mapper = new ModelMapper();
 
     @Autowired
     public AuthHandler(UserService service, Validator validator,
-                       PasswordEncoder encoder, JWTUtil jwtUtil, ValidationUtil validationUtil) {
+                       PasswordEncoder encoder, JWTUtil jwtUtil,
+                       ValidationUtil validationUtil) {
         this.service = service;
         this.validator = validator;
         this.validationUtil = validationUtil;
@@ -47,9 +53,10 @@ public class AuthHandler {
             if (!errors.isEmpty()) {
                 return validationUtil.validateMono(errors);
             } else {
-                return service.getByEmail(body.getEmail()).flatMap(user -> {
+                return service.getByUsername(body.getUsername()).flatMap(user -> {
                     if (encoder.matches(body.getPassword(), user.getPassword())) {
-                        AuthResponse response = new AuthResponse(jwtUtil.generateToken(user));
+                        User mapped = mapper.map(user, User.class);
+                        AuthResponse response = new AuthResponse(jwtUtil.generateToken(mapped));
                         return ServerResponse.ok()
                                 .contentType(APPLICATION_JSON)
                                 .body(fromValue(response));
