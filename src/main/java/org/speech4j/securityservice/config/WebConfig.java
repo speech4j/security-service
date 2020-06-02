@@ -1,6 +1,9 @@
 package org.speech4j.securityservice.config;
 
+import com.nimbusds.jose.util.IntegerUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.speech4j.securityservice.handler.AuthHandler;
+import org.speech4j.securityservice.handler.RoleHandler;
 import org.speech4j.securityservice.handler.UserHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,8 +41,21 @@ public class WebConfig implements WebFluxConfigurer {
                .andRoute(POST("/register").and(accept(APPLICATION_JSON)), handler::register);
     }
 
+    @Bean
+    RouterFunction<ServerResponse> roleRoutes(RoleHandler handler) {
+        return route(POST("/roles").and(accept(APPLICATION_JSON)), handler::createRole)
+                .andRoute(GET("/roles"), handler::getRoles)
+                .andRoute(GET("/roles").and(isNumberQueryParam("id")), handler::getRoleById)
+                .andRoute(PUT("/roles/{id}").and(accept(APPLICATION_JSON)), handler::updateRole)
+                .andRoute(DELETE("/roles/{id}"), handler::deleteRole);
+    }
+
     public static RequestPredicate hasQueryParam(String name) {
         return RequestPredicates.queryParam(name, StringUtils::hasText);
+    }
+
+    public static RequestPredicate isNumberQueryParam(String name) {
+        return RequestPredicates.queryParam("id", org.apache.commons.lang3.StringUtils::isNumeric);
     }
 
     @Bean
