@@ -137,9 +137,11 @@ public class UserServiceImpl implements UserService, ReactiveUserDetailsService 
     public Mono<UserDetails> findByUsername(String username) {
         Mono<User> userMono = getByUsername(username).map(this::mapUserDto);
         return userMono.flatMap(user -> {
+            LOGGER.debug("Found user {}", user);
             Mono<Set<Role>> setMono = roleRepository.findByUserId(user.getId()).collect(Collectors.toSet());
             return setMono.flatMap(roles -> {
                 user.setRoles(roles);
+                LOGGER.debug("User with roles: {}", user);
                 return Mono.just(user);
             });
         });

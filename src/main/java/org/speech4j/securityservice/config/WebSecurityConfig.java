@@ -43,6 +43,7 @@ public class WebSecurityConfig {
                 .authorizeExchange()
                 .pathMatchers("/register").permitAll()
                 .pathMatchers("/login").permitAll()
+                .pathMatchers("/users").hasAuthority("admin")
                 .pathMatchers(HttpMethod.DELETE, "/users").hasAuthority("admin")
                 .anyExchange().authenticated()
                 .and().build();

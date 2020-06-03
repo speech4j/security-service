@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -31,10 +32,10 @@ public class AuthenticationManager implements ReactiveAuthenticationManager {
                 return Mono.empty();
             }
             Claims claims = jwtUtil.getAllClaimsFromToken(authToken);
-            List<String> rolesMap = claims.get("role", List.class);
+            List<Map<String, String>> rolesMap = claims.get("role", List.class);
             List<GrantedAuthority> authorities = new ArrayList<>();
-            for (String rolemap : rolesMap) {
-                authorities.add(new SimpleGrantedAuthority(rolemap));
+            for (var rolemap: rolesMap) {
+                authorities.add(new SimpleGrantedAuthority(rolemap.get("authority")));
             }
             return Mono.just(new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities));
         } catch (Exception e) {

@@ -1,5 +1,6 @@
 package org.speech4j.securityservice.handler;
 
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.speech4j.securityservice.domain.User;
@@ -66,9 +67,10 @@ public class AuthHandler {
                                 .contentType(APPLICATION_JSON)
                                 .body(fromValue(response));
                     } else {
+                        LOGGER.debug("Password doesn't match");
                         return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
                     }
-                }).onErrorResume(err ->  ServerResponse.status(HttpStatus.UNAUTHORIZED).build());
+                }).doOnError(err -> LOGGER.error("Error {}", err));
             }
         });
     }
