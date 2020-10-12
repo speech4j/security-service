@@ -13,7 +13,7 @@ logging:
 spring:
   data:
     postgres:
-      host: "localhost"
+      host: "db"
       port: 5432
       username: "securityuser"
       password: "security123"

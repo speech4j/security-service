@@ -1,7 +1,9 @@
 version: "3.1"
 services:
   db:
-    image: "postgres:alpine"
+    build:
+      context: .
+      dockerfile: Dockerfile.db
     restart: always
     ports:
       - "5432:5432"
@@ -9,3 +11,10 @@ services:
       POSTGRES_PASSWORD: security123
       POSTGRES_USER: securityuser
       POSTGRES_DB: securityservice
+  app:
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db

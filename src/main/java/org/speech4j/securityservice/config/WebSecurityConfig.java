@@ -41,6 +41,7 @@ public class WebSecurityConfig {
                 .authenticationManager(manager)
                 .securityContextRepository(repository)
                 .authorizeExchange()
+                .pathMatchers("/actuator/**").permitAll()
                 .pathMatchers("/register").permitAll()
                 .pathMatchers("/login").permitAll()
                 .pathMatchers("/users").hasAuthority("admin")
